@@ -76,9 +76,10 @@ df1["Transaction Date"] = pd.to_datetime(df1["Transaction Date"], format="%d/%m/
 
 df1["source_url"] = "https://www.bot.go.tz/ExchangeRate/excRates"
 
-df1.to_csv("C:\\projects\\mazagazag\\BOT_exchange_rate.csv", mode = 'a')
+df1.to_csv("BOT_exchange_rate.csv", mode = 'a')
 
 print(df1)
+
 
 
 
