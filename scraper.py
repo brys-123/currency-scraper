@@ -1,0 +1,86 @@
+from bs4 import BeautifulSoup as bs
+import requests
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/120.0.0.0 Safari/537.36"
+}
+
+link = "https://www.bot.go.tz/ExchangeRate/excRates"
+
+
+try:
+    respons = requests.get(link,headers = headers)
+    print(respons)
+except:
+    print("there is a server error")
+
+if respons.status_code == 200:
+    print("your respons is accepted")
+else:
+    print("your respons denied")
+
+
+# fetch the html structure 
+html = respons.text
+
+html_structure = bs(html,"html.parser")
+
+tables = html_structure.find("table")
+table_hed1 = [th.get_text(strip = True) for th in tables.find_all("th") ]
+
+table_hed2 = pd.Series(table_hed1)
+table_hed3 = list(table_hed2.unique())
+
+
+# creating the data frame with column headers only
+
+val1 = [tr.get_text(strip = False) for tr in tables.find_all("tr")][1:]
+
+
+# optain the cleaned rows
+
+cleaned_val = []
+
+for row in val1:
+    cell = [cell.strip() for cell in row.split("\n") if cell.strip() != '']
+    cleaned_val.append(cell)
+
+
+cleaned_val = cleaned_val[:-1]
+
+df1 = pd.DataFrame(cleaned_val, columns = table_hed3)
+df1.set_index("S/NO", inplace = True)
+
+print(df1)
+
+# add the time stamp column to  the data set
+
+df1["Transaction Date"] = pd.to_datetime(df1["Transaction Date"], format="%d-%b-%y")
+
+df1.columns
+
+cols1 = ['Buying', 'Selling', 'Mean',]
+
+# conver the above column into numeric
+df1[cols1] = df1[cols1].apply(pd.to_numeric)
+
+# df1["Transaction Date"]  = pd.to_datetime(df1["Transaction Date"])
+# Example if your dates are like "23/01/2026"
+df1["Transaction Date"] = pd.to_datetime(df1["Transaction Date"], format="%d/%m/%Y")
+
+
+df1["source_url"] = "https://www.bot.go.tz/ExchangeRate/excRates"
+
+df1.to_csv("C:\\projects\\mazagazag\\BOT_exchange_rate.csv", mode = 'a')
+
+print(df1)
+
+
+
+
+

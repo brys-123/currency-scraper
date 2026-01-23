@@ -1,0 +1,5 @@
+BeautifulSoup 
+requests
+pandas
+numpy 
+datetime
