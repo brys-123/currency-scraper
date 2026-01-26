@@ -1,44 +1,44 @@
-S/NO,Currency,Buying,Selling,Mean,Transaction Date,source_url
-1,AED,673.6107,680.3468,676.9788,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-2,ATS,158.5972,160.1832,159.3902,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-3,AUD,1710.241,1727.3434,1718.7922,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-4,BIF,0.8356,0.844,0.8398,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-5,BWP,198.4394,200.4238,199.4316,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-6,CAD,1805.0094,1823.0595,1814.0345,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-7,CHF,3175.0378,3206.7881,3190.913,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-8,CNY,355.785,359.3429,357.5639,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-9,CUC,103.0961,104.1271,103.6116,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-10,DKK,392.1806,396.1025,394.1416,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-11,DZD,19.0397,19.2301,19.1349,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-12,EUR,2929.0845,2958.3754,2943.73,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-13,GBP,3377.1815,3410.9533,3394.0674,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-14,HKD,317.3246,320.4979,318.9112,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-15,INR,26.9632,27.2329,27.098,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-16,IQD,1.8881,1.9069,1.8975,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-17,IRR,0.0023,0.0023,0.0023,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-18,JPY,16.045,16.2055,16.1253,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-19,KES,19.1658,19.3575,19.2616,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-20,KRW,1.7093,1.7264,1.7179,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-21,KWD,8109.8228,8190.921,8150.3719,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-22,MWK,1.4131,1.4272,1.4201,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-23,MYR,623.5653,629.8009,626.6831,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-24,MZM,38.3495,38.733,38.5412,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-25,NAD,153.9466,155.4861,154.7163,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-26,NGN,1.7433,1.7608,1.7521,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-27,NLG,990.317,1000.2201,995.2685,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-28,NOK,252.4623,254.9869,253.7246,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-29,NZD,1475.1818,1489.9336,1482.5577,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-30,PKR,8.8321,8.9204,8.8762,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-31,QAR,678.8222,685.6104,682.2163,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-32,RWF,1.6901,1.707,1.6986,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-33,SAR,659.8152,666.4133,663.1143,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-34,SDR,3387.6981,3421.5751,3404.6366,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-35,SEK,275.6642,278.4209,277.0425,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-36,SGD,1946.5872,1966.053,1956.3201,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-37,TRY,57.0367,57.607,57.3218,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-38,UGX,0.6969,0.7039,0.7004,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-39,USD,2474.3069,2499.05,2486.6785,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-40,GOLD,12554410.68,12679954.79,12617182.73,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-41,ZAR,153.9562,155.4958,154.726,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-42,ZMW,126.563,127.8286,127.1958,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
-43,ZWD,6.4942,6.5592,6.5267,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates
+S/NO,Currency,Buying,Selling,Mean,Transaction Date,source_url,scraped_at
+1,AED,673.6107,680.3468,676.9788,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+33,SAR,659.8152,666.4133,663.1143,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+25,NAD,153.9466,155.4861,154.7163,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+26,NGN,1.7433,1.7608,1.7521,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+27,NLG,990.317,1000.2201,995.2685,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+28,NOK,252.4623,254.9869,253.7246,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+29,NZD,1475.1818,1489.9336,1482.5577,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+30,PKR,8.8321,8.9204,8.8762,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+31,QAR,678.8222,685.6104,682.2163,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+32,RWF,1.6901,1.707,1.6986,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+34,SDR,3387.6981,3421.5751,3404.6366,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+23,MYR,623.5653,629.8009,626.6831,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+35,SEK,275.6642,278.4209,277.0425,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+36,SGD,1946.5872,1966.053,1956.3201,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+37,TRY,57.0367,57.607,57.3218,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+38,UGX,0.6969,0.7039,0.7004,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+39,USD,2474.3069,2499.05,2486.6785,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+40,GOLD,12554410.68,12679954.79,12617182.73,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+41,ZAR,153.9562,155.4958,154.726,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+42,ZMW,126.563,127.8286,127.1958,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+24,MZM,38.3495,38.733,38.5412,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+22,MWK,1.4131,1.4272,1.4201,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+2,ATS,158.5972,160.1832,159.3902,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+11,DZD,19.0397,19.2301,19.1349,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+3,AUD,1710.241,1727.3434,1718.7922,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+4,BIF,0.8356,0.844,0.8398,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+5,BWP,198.4394,200.4238,199.4316,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+6,CAD,1805.0094,1823.0595,1814.0345,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+7,CHF,3175.0378,3206.7881,3190.913,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+8,CNY,355.785,359.3429,357.5639,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+9,CUC,103.0961,104.1271,103.6116,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+10,DKK,392.1806,396.1025,394.1416,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+12,EUR,2929.0845,2958.3754,2943.73,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+21,KWD,8109.8228,8190.921,8150.3719,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+13,GBP,3377.1815,3410.9533,3394.0674,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+14,HKD,317.3246,320.4979,318.9112,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+15,INR,26.9632,27.2329,27.098,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+16,IQD,1.8881,1.9069,1.8975,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+17,IRR,0.0023,0.0023,0.0023,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+18,JPY,16.045,16.2055,16.1253,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+19,KES,19.1658,19.3575,19.2616,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+20,KRW,1.7093,1.7264,1.7179,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
+43,ZWD,6.4942,6.5592,6.5267,2026-01-26,https://www.bot.go.tz/ExchangeRate/excRates,2026-01-26 18:46:08.874489
