@@ -1,5 +1,6 @@
-BeautifulSoup 
+beautifulsoup4 
 requests
 pandas
 numpy 
+
 datetime
