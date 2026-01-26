@@ -51,9 +51,7 @@ cleaned_val = cleaned_val[:-1]
 df1 = pd.DataFrame(cleaned_val, columns=table_hed3)
 df1.set_index("S/NO", inplace=True)
 
-print(df1)
-
-# add the time stamp column to the data set
+# Convert Transaction Date
 df1["Transaction Date"] = pd.to_datetime(df1["Transaction Date"], format="%d-%b-%y")
 
 cols1 = ['Buying', 'Selling', 'Mean']
@@ -66,34 +64,17 @@ df1["source_url"] = "https://www.bot.go.tz/ExchangeRate/excRates"
 # Add scrape timestamp
 df1["scraped_at"] = datetime.now()
 
+# ====== SIMPLE APPEND ======
 
 csv_file = "BOT_exchange_rate.csv"
 
-# Check if file exists
 if os.path.exists(csv_file):
-    # Read existing data
-    existing_df = pd.read_csv(csv_file, index_col="S/NO")
-    existing_df["Transaction Date"] = pd.to_datetime(existing_df["Transaction Date"])
-    
-    # Combine old and new data
-    combined_df = pd.concat([existing_df, df1])
-    
-    # Remove duplicates (same Currency and Transaction Date)
-    combined_df = combined_df.drop_duplicates(
-        subset=["Currency", "Transaction Date"], 
-        keep="last"  # Keep the latest data
-    )
-    
-    # Sort by date
-    combined_df = combined_df.sort_values("Transaction Date", ascending=False)
-    
-    # Save combined data
-    combined_df.to_csv(csv_file)
-    print(f"✓ Data updated! Total records: {len(combined_df)}")
-    
+    # Append without headers
+    df1.to_csv(csv_file, mode='a', header=False, index=False)
+    print(f"✓ Data appended! Added {len(df1)} rows")
 else:
-    # First time - create new file
-    df1.to_csv(csv_file)
-    print(f"✓ New file created! Total records: {len(df1)}")
+    # First time - create with headers
+    df1.to_csv(csv_file, mode='w', header=True, index=False)
+    print(f"✓ New file created! Added {len(df1)} rows")
 
 df1
