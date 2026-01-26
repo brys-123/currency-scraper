@@ -6,25 +6,29 @@ on:
     - cron: "0 5 * * *"   # Run every day at 8 AM Tanzania time
   workflow_dispatch:       # Allows manual run too
 
+permissions:               # ← ONGEZA HIZI HAPA
+  contents: write          # ← Ruhusa ya kuandika
+
 jobs:
   run-scraper:
     runs-on: ubuntu-latest
-
     steps:
       # Checkout repo
       - uses: actions/checkout@v4
-
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # ← Ongeza hii pia
+      
       # Setup Python
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
+      
       # Install packages
       - run: pip install -r requirements.txt
-
+      
       # Run your scraper
       - run: python scraper.py
-
+      
       # Commit results back to repo
       - name: Save results
         run: |
