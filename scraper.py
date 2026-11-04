@@ -1,32 +1,37 @@
 
 """
-BANK OF TANZANIA (BOT) EXCHANGE RATE SCRAPER
-------------------------------------------------
-Source: https://www.bot.go.tz/ExchangeRate/excRates
+BANK OF TANZANIA CURRENCY EXCHANGE RATE SCRAPER
+================================================
+Source:
+https://www.bot.go.tz/ExchangeRate/excRates
 
 Features:
-1. Supports English and Swahili column headings.
-2. Extracts exchange-rate information from BOT.
-3. Cleans dates and numerical values.
-4. Validates extracted records.
-5. Prevents duplicate records.
-6. Preserves historical CSV records.
-7. Provides detailed execution logs.
-8. Suitable for GitHub Actions automation.
+- Automatic connection retries
+- Extended connection and read timeouts
+- English and Swahili column recognition
+- Exchange-rate extraction
+- Date and numerical cleaning
+- Data validation
+- Duplicate prevention
+- Historical CSV preservation
+- GitHub Actions compatibility
 """
 
 import os
 import re
 import sys
+import time
 import logging
 import unicodedata
-from io import StringIO
+
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from io import StringIO
 
 import requests
 import pandas as pd
+
 from bs4 import BeautifulSoup
 
 
@@ -36,9 +41,19 @@ from bs4 import BeautifulSoup
 
 SOURCE_URL = "https://www.bot.go.tz/ExchangeRate/excRates"
 
-OUTPUT_FILE = Path(__file__).resolve().parent / "BOT_exchange_rate.csv"
+OUTPUT_FILE = (
+    Path(__file__).resolve().parent /
+    "BOT_exchange_rate.csv"
+)
 
 TIMEZONE = ZoneInfo("Africa/Dar_es_Salaam")
+
+MAX_RETRIES = 4
+
+CONNECT_TIMEOUT = 30
+READ_TIMEOUT = 120
+
+RETRY_DELAY = 15
 
 HEADERS = {
     "User-Agent": (
@@ -51,6 +66,7 @@ HEADERS = {
         "application/xml;q=0.9,*/*;q=0.8"
     ),
     "Accept-Language": "en-US,en;q=0.9,sw;q=0.8",
+    "Connection": "keep-alive",
 }
 
 REQUIRED_COLUMNS = [
@@ -73,7 +89,7 @@ OUTPUT_COLUMNS = [
 
 
 # ============================================================
-# 2. LOGGING CONFIGURATION
+# 2. LOGGING
 # ============================================================
 
 logging.basicConfig(
@@ -81,7 +97,7 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s"
 )
 
-logger = logging.getLogger("BOT_SCRAPER")
+logger = logging.getLogger("BOT_CURRENCY_SCRAPER")
 
 
 # ============================================================
@@ -89,9 +105,6 @@ logger = logging.getLogger("BOT_SCRAPER")
 # ============================================================
 
 def normalize_text(text):
-    """
-    Normalize text by removing accents, spaces and punctuation.
-    """
 
     text = unicodedata.normalize("NFKD", str(text))
 
@@ -143,9 +156,6 @@ COLUMN_ALIASES = {
 
 
 def standardize_columns(columns):
-    """
-    Convert BOT headings into standardized English headings.
-    """
 
     standardized = []
 
@@ -154,7 +164,10 @@ def standardize_columns(columns):
         normalized = normalize_text(column)
 
         standardized.append(
-            COLUMN_ALIASES.get(normalized, str(column).strip())
+            COLUMN_ALIASES.get(
+                normalized,
+                str(column).strip()
+            )
         )
 
     return standardized
@@ -171,35 +184,99 @@ def fetch_website():
     logger.info("=" * 65)
 
     logger.info("Connecting to Bank of Tanzania...")
+    logger.info("Source URL: %s", SOURCE_URL)
 
-    try:
+    session = requests.Session()
+    session.headers.update(HEADERS)
 
-        response = requests.get(
-            SOURCE_URL,
-            headers=HEADERS,
-            timeout=60
-        )
+    last_error = None
 
-        response.raise_for_status()
+    for attempt in range(1, MAX_RETRIES + 1):
 
-        logger.info(
-            "Website response accepted: HTTP %s",
-            response.status_code
-        )
+        try:
 
-        return response.text
+            logger.info(
+                "Connection attempt %s of %s",
+                attempt,
+                MAX_RETRIES
+            )
 
-    except requests.RequestException as error:
+            response = session.get(
+                SOURCE_URL,
+                timeout=(
+                    CONNECT_TIMEOUT,
+                    READ_TIMEOUT
+                )
+            )
 
-        logger.exception("Unable to connect to BOT website.")
+            response.raise_for_status()
 
-        raise RuntimeError(
-            f"BOT website connection failed: {error}"
-        ) from error
+            # Ensure the complete response body is available.
+            html = response.text
+
+            if not html or not html.strip():
+
+                raise ValueError(
+                    "BOT returned an empty HTML response."
+                )
+
+            logger.info(
+                "Website response accepted: HTTP %s",
+                response.status_code
+            )
+
+            logger.info(
+                "Downloaded HTML size: %s KB",
+                round(len(response.content) / 1024, 2)
+            )
+
+            session.close()
+
+            return html
+
+        except (
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.HTTPError,
+            ValueError
+        ) as error:
+
+            last_error = error
+
+            logger.warning(
+                "Connection attempt %s failed: %s",
+                attempt,
+                error
+            )
+
+            if attempt < MAX_RETRIES:
+
+                wait_time = RETRY_DELAY * attempt
+
+                logger.info(
+                    "Retrying in %s seconds...",
+                    wait_time
+                )
+
+                time.sleep(wait_time)
+
+            else:
+
+                logger.error(
+                    "All %s connection attempts failed.",
+                    MAX_RETRIES
+                )
+
+    session.close()
+
+    raise RuntimeError(
+        f"Could not download BOT website after "
+        f"{MAX_RETRIES} attempts. Last error: {last_error}"
+    )
 
 
 # ============================================================
-# 5. EXTRACT BOT EXCHANGE RATE TABLE
+# 5. EXTRACT EXCHANGE RATE TABLE
 # ============================================================
 
 def extract_table(html):
@@ -210,13 +287,24 @@ def extract_table(html):
 
     tables = soup.find_all("table")
 
+    logger.info(
+        "HTML tables discovered: %s",
+        len(tables)
+    )
+
     if not tables:
 
         raise ValueError(
-            "No HTML tables were found on the BOT website."
+            "No HTML tables found. "
+            "The BOT page may have changed or use JavaScript."
         )
 
-    logger.info("HTML tables discovered: %s", len(tables))
+    essential_columns = {
+        "Currency",
+        "Buying",
+        "Selling",
+        "Mean"
+    }
 
     for table_number, table in enumerate(tables, start=1):
 
@@ -225,7 +313,6 @@ def extract_table(html):
         if not rows:
             continue
 
-        # Check every row for possible table headings.
         for header_index, header_row in enumerate(rows):
 
             header_cells = header_row.find_all(
@@ -241,44 +328,21 @@ def extract_table(html):
                 for cell in header_cells
             ]
 
-            headers = standardize_columns(original_headers)
+            headers = standardize_columns(
+                original_headers
+            )
 
-            # Identify the essential exchange-rate columns.
-            essential = {
-                "Currency",
-                "Buying",
-                "Selling",
-                "Mean"
-            }
-
-            if not essential.issubset(set(headers)):
+            if not essential_columns.issubset(set(headers)):
                 continue
 
-            # Find transaction date column.
             if "Transaction Date" not in headers:
 
-                # Try to find the date heading in nearby rows.
-                for nearby_row in rows[
-                    max(0, header_index - 1):
-                    min(len(rows), header_index + 3)
-                ]:
+                logger.warning(
+                    "Rate columns found, but transaction date "
+                    "was not detected in Table %s.",
+                    table_number
+                )
 
-                    nearby_cells = nearby_row.find_all(
-                        ["th", "td"],
-                        recursive=False
-                    )
-
-                    nearby_headers = standardize_columns([
-                        cell.get_text(" ", strip=True)
-                        for cell in nearby_cells
-                    ])
-
-                    if "Transaction Date" in nearby_headers:
-                        headers = nearby_headers
-                        header_index = rows.index(nearby_row)
-                        break
-
-            if not set(REQUIRED_COLUMNS).issubset(set(headers)):
                 continue
 
             logger.info(
@@ -286,11 +350,13 @@ def extract_table(html):
                 table_number
             )
 
-            logger.info("Detected columns: %s", headers)
+            logger.info(
+                "Detected headings: %s",
+                headers
+            )
 
             extracted_rows = []
 
-            # Extract data after the header row.
             for data_row in rows[header_index + 1:]:
 
                 cells = data_row.find_all(
@@ -306,7 +372,6 @@ def extract_table(html):
                 if len(values) != len(headers):
                     continue
 
-                # Skip repeated headings.
                 normalized_values = set(
                     standardize_columns(values)
                 )
@@ -325,7 +390,9 @@ def extract_table(html):
 
             if extracted_rows:
 
-                dataframe = pd.DataFrame(extracted_rows)
+                dataframe = pd.DataFrame(
+                    extracted_rows
+                )
 
                 logger.info(
                     "Successfully extracted %s records.",
@@ -334,26 +401,29 @@ def extract_table(html):
 
                 return dataframe
 
-    # Fallback: attempt extraction using pandas HTML table parser.
+    # Fallback using pandas HTML parser.
     logger.warning(
-        "BeautifulSoup extraction did not identify a suitable table. "
-        "Trying pandas HTML parser..."
+        "Trying pandas HTML table extraction..."
     )
 
     try:
 
-        pandas_tables = pd.read_html(StringIO(html))
+        pandas_tables = pd.read_html(
+            StringIO(html)
+        )
 
         for table in pandas_tables:
 
-            table.columns = standardize_columns(table.columns)
+            table.columns = standardize_columns(
+                table.columns
+            )
 
             if set(REQUIRED_COLUMNS).issubset(
                 set(table.columns)
             ):
 
                 logger.info(
-                    "Exchange-rate table identified using pandas."
+                    "Table identified using pandas."
                 )
 
                 return table
@@ -361,13 +431,13 @@ def extract_table(html):
     except Exception as error:
 
         logger.warning(
-            "Pandas HTML extraction failed: %s",
+            "Pandas table extraction failed: %s",
             error
         )
 
     raise ValueError(
         "Could not identify the BOT exchange-rate table. "
-        "The website HTML structure or column headings may have changed."
+        "Check the actual BOT HTML structure and headings."
     )
 
 
@@ -376,26 +446,36 @@ def extract_table(html):
 # ============================================================
 
 def clean_number(value):
-    """
-    Convert exchange-rate values into numerical format.
-    """
 
     if pd.isna(value):
         return None
 
     value = str(value).strip()
 
-    if not value or value.lower() in ["nan", "none", "-"]:
+    if not value or value.lower() in [
+        "nan",
+        "none",
+        "null",
+        "-"
+    ]:
         return None
 
-    # Remove thousands separators and currency symbols.
+    # Remove thousands separators.
     value = value.replace(",", "")
-    value = re.sub(r"[^\d.\-]", "", value)
+
+    # Remove currency symbols and other characters.
+    value = re.sub(
+        r"[^\d.\-]",
+        "",
+        value
+    )
 
     try:
+
         return float(value)
 
-    except ValueError:
+    except (ValueError, TypeError):
+
         return None
 
 
@@ -407,14 +487,12 @@ def clean_dates(series):
 
     dates = series.astype(str).str.strip()
 
-    # Try standard date parsing first.
     parsed = pd.to_datetime(
         dates,
         errors="coerce",
         dayfirst=True
     )
 
-    # Try common BOT date formats for any remaining failures.
     formats = [
         "%d-%b-%y",
         "%d-%B-%Y",
@@ -442,22 +520,26 @@ def clean_dates(series):
 
 
 # ============================================================
-# 8. VALIDATE AND CLEAN DATA
+# 8. CLEAN AND VALIDATE DATA
 # ============================================================
 
 def clean_data(dataframe):
 
-    logger.info("Cleaning extracted exchange-rate data...")
+    logger.info(
+        "Cleaning extracted exchange-rate data..."
+    )
 
     df = dataframe.copy()
 
-    # Standardize column headings.
-    df.columns = standardize_columns(df.columns)
+    df.columns = standardize_columns(
+        df.columns
+    )
 
-    # Remove duplicate column names.
-    df = df.loc[:, ~df.columns.duplicated()]
+    df = df.loc[
+        :,
+        ~df.columns.duplicated()
+    ]
 
-    # Verify required columns.
     missing_columns = [
         column
         for column in REQUIRED_COLUMNS
@@ -471,24 +553,22 @@ def clean_data(dataframe):
             f"Available columns: {df.columns.tolist()}"
         )
 
-    # Keep required fields.
     df = df[REQUIRED_COLUMNS].copy()
 
-    # Remove empty rows.
     df.replace(
         ["", "nan", "None", "NULL", "-"],
         pd.NA,
         inplace=True
     )
 
-    # Clean currency names.
+    # Currency names.
     df["Currency"] = (
         df["Currency"]
         .astype("string")
         .str.strip()
     )
 
-    # Convert numerical columns.
+    # Numerical columns.
     numerical_columns = [
         "Buying",
         "Selling",
@@ -497,35 +577,37 @@ def clean_data(dataframe):
 
     for column in numerical_columns:
 
-        df[column] = df[column].apply(clean_number)
+        df[column] = df[column].apply(
+            clean_number
+        )
 
         df[column] = pd.to_numeric(
             df[column],
             errors="coerce"
         )
 
-    # Convert transaction dates.
+    # Transaction dates.
     df["Transaction Date"] = clean_dates(
         df["Transaction Date"]
     )
 
-    # Remove records with missing essential information.
-    before = len(df)
+    original_count = len(df)
 
     df.dropna(
         subset=REQUIRED_COLUMNS,
         inplace=True
     )
 
-    removed = before - len(df)
+    removed_count = original_count - len(df)
 
-    if removed:
+    if removed_count:
+
         logger.warning(
-            "Removed %s incomplete or invalid records.",
-            removed
+            "Removed %s incomplete records.",
+            removed_count
         )
 
-    # Validate exchange rates.
+    # Validate positive exchange rates.
     df = df[
         (df["Buying"] > 0) &
         (df["Selling"] > 0) &
@@ -538,8 +620,10 @@ def clean_data(dataframe):
             "No valid exchange-rate records remain after cleaning."
         )
 
-    # Add source and extraction timestamp.
-    scraped_time = datetime.now(TIMEZONE)
+    # Tanzania local timestamp.
+    scraped_time = datetime.now(
+        TIMEZONE
+    )
 
     df["source_url"] = SOURCE_URL
 
@@ -547,7 +631,7 @@ def clean_data(dataframe):
         "%Y-%m-%d %H:%M:%S"
     )
 
-    # Remove duplicate records within the current extraction.
+    # Remove duplicates within the current extraction.
     df.drop_duplicates(
         subset=[
             "Currency",
@@ -560,18 +644,24 @@ def clean_data(dataframe):
         inplace=True
     )
 
-    # Standard date format for CSV.
     df["Transaction Date"] = (
-        df["Transaction Date"].dt.strftime("%Y-%m-%d")
+        df["Transaction Date"]
+        .dt.strftime("%Y-%m-%d")
     )
 
-    # Arrange final columns.
     df = df[OUTPUT_COLUMNS]
 
-    df.reset_index(drop=True, inplace=True)
+    df.reset_index(
+        drop=True,
+        inplace=True
+    )
 
     logger.info(
-        "Data cleaning completed. Valid records: %s",
+        "Data cleaning completed successfully."
+    )
+
+    logger.info(
+        "Valid exchange-rate records: %s",
         len(df)
     )
 
@@ -579,7 +669,7 @@ def clean_data(dataframe):
 
 
 # ============================================================
-# 9. SAVE DATA TO CSV
+# 9. SAVE HISTORICAL CSV DATA
 # ============================================================
 
 def save_data(new_data):
@@ -588,6 +678,10 @@ def save_data(new_data):
 
     if OUTPUT_FILE.exists():
 
+        logger.info(
+            "Historical CSV file found."
+        )
+
         try:
 
             old_data = pd.read_csv(
@@ -595,47 +689,47 @@ def save_data(new_data):
                 dtype={"Currency": "string"}
             )
 
-            logger.info(
-                "Existing historical records: %s",
-                len(old_data)
-            )
-
-            # Ensure historical data has the expected columns.
-            missing = [
+            missing_columns = [
                 column
                 for column in OUTPUT_COLUMNS
                 if column not in old_data.columns
             ]
 
-            if missing:
+            if missing_columns:
 
                 raise ValueError(
-                    "Existing CSV has missing columns: "
-                    f"{missing}. Please check the historical file."
+                    f"Historical CSV is missing columns: "
+                    f"{missing_columns}"
                 )
 
+            logger.info(
+                "Existing historical records: %s",
+                len(old_data)
+            )
+
             combined = pd.concat(
-                [old_data[OUTPUT_COLUMNS], new_data],
+                [
+                    old_data[OUTPUT_COLUMNS],
+                    new_data
+                ],
                 ignore_index=True
             )
 
         except Exception as error:
 
-            logger.exception(
-                "Unable to read existing CSV file."
-            )
-
             raise RuntimeError(
-                f"Could not safely update historical CSV: {error}"
+                f"Could not safely read historical CSV: {error}"
             ) from error
 
     else:
 
-        logger.info("Creating a new historical CSV file.")
+        logger.info(
+            "Creating a new historical CSV file."
+        )
 
         combined = new_data.copy()
 
-    # Prevent duplicate exchange-rate records.
+    # Remove duplicate records.
     combined.drop_duplicates(
         subset=[
             "Currency",
@@ -648,15 +742,21 @@ def save_data(new_data):
         inplace=True
     )
 
-    # Sort historical data.
+    # Sort records chronologically.
     combined.sort_values(
-        by=["Transaction Date", "Currency"],
+        by=[
+            "Transaction Date",
+            "Currency"
+        ],
         inplace=True
     )
 
-    combined.reset_index(drop=True, inplace=True)
+    combined.reset_index(
+        drop=True,
+        inplace=True
+    )
 
-    # Save atomically to avoid corrupting the existing file.
+    # Save to temporary file first.
     temporary_file = OUTPUT_FILE.with_suffix(".tmp")
 
     combined.to_csv(
@@ -665,6 +765,7 @@ def save_data(new_data):
         encoding="utf-8"
     )
 
+    # Replace the previous CSV safely.
     os.replace(
         temporary_file,
         OUTPUT_FILE
@@ -673,70 +774,96 @@ def save_data(new_data):
     logger.info("=" * 65)
     logger.info("DATA SAVED SUCCESSFULLY")
     logger.info("CSV FILE: %s", OUTPUT_FILE.name)
-    logger.info("NEW RECORDS EXTRACTED: %s", len(new_data))
-    logger.info("TOTAL HISTORICAL RECORDS: %s", len(combined))
+    logger.info("NEW RECORDS: %s", len(new_data))
+    logger.info(
+        "TOTAL HISTORICAL RECORDS: %s",
+        len(combined)
+    )
     logger.info("=" * 65)
 
     return combined
 
 
 # ============================================================
-# 10. MAIN EXECUTION
+# 10. EXECUTION SUMMARY
+# ============================================================
+
+def display_summary(new_data, final_data):
+
+    logger.info(
+        "Currencies extracted: %s",
+        new_data["Currency"].nunique()
+    )
+
+    logger.info(
+        "Latest transaction date: %s",
+        new_data["Transaction Date"].max()
+    )
+
+    logger.info(
+        "Historical dataset size: %s records",
+        len(final_data)
+    )
+
+    logger.info(
+        "Output location: %s",
+        OUTPUT_FILE
+    )
+
+    print("\nEXCHANGE RATE DATA PREVIEW")
+
+    print(
+        new_data.head(10).to_string(
+            index=False
+        )
+    )
+
+
+# ============================================================
+# 11. MAIN PROGRAM
 # ============================================================
 
 def main():
 
     try:
 
-        # Step 1: Connect to BOT.
+        # Step 1: Download BOT website.
         html = fetch_website()
 
         # Step 2: Extract exchange-rate table.
         raw_data = extract_table(html)
 
-        # Step 3: Clean and validate data.
+        # Step 3: Clean and validate.
         cleaned_data = clean_data(raw_data)
 
         # Step 4: Save historical data.
         final_data = save_data(cleaned_data)
 
-        # Step 5: Display execution summary.
-        logger.info("BOT CURRENCY SCRAPER COMPLETED SUCCESSFULLY.")
-
-        logger.info(
-            "Currencies extracted: %s",
-            cleaned_data["Currency"].nunique()
+        # Step 5: Display summary.
+        display_summary(
+            cleaned_data,
+            final_data
         )
 
+        logger.info("=" * 65)
         logger.info(
-            "Latest transaction date: %s",
-            cleaned_data["Transaction Date"].max()
+            "BOT CURRENCY SCRAPER COMPLETED SUCCESSFULLY"
         )
-
-        logger.info(
-            "Historical dataset size: %s records",
-            len(final_data)
-        )
-
-        logger.info(
-            "Output location: %s",
-            OUTPUT_FILE
-        )
-
-        print("\nEXCHANGE RATE DATA PREVIEW:")
-
-        print(cleaned_data.head(10).to_string(index=False))
+        logger.info("=" * 65)
 
     except Exception:
 
-        logger.exception("BOT CURRENCY SCRAPER FAILED")
+        logger.exception(
+            "BOT CURRENCY SCRAPER FAILED"
+        )
 
         sys.exit(1)
 
 
 # ============================================================
-# 11. START PROGRAM
+# 12. START SCRAPER
 # ============================================================
 
 if __name__ == "__main__":
+
     main()
